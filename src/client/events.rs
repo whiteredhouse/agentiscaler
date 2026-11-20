@@ -25,6 +25,9 @@ pub(super) enum ClientLoopEvent {
     },
     EndpointSupervisor(endpoint::EndpointSupervisorEvent),
     EndpointCatalog(Result<Vec<endpoint::SavedSshEndpoint>, String>),
+    /// What the local agentiscaled node says about the network's agents;
+    /// None when no node is set up on this machine.
+    NetworkAgents(Option<shell::NetworkView>),
     HostPower(crate::platform::HostPowerEvent),
     ActivateEndpoint {
         endpoint_id: endpoint::ClientEndpointId,

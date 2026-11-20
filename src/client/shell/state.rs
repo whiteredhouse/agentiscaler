@@ -859,6 +859,9 @@ pub(super) struct ClientCopyModeState {
 
 pub(crate) struct ClientShellState {
     pub(super) machine_diagnostics: super::machine_diagnostics::MachineDiagnostics,
+    /// What the local agentiscaled node last said about the network's agents;
+    /// None while no node answers.
+    pub(super) network: Option<super::NetworkView>,
     pub(super) config: ClientShellConfig,
     pub(super) snapshot: Option<Box<ClientShellSnapshot>>,
     pub(super) active_snapshot_generation: Option<u64>,
@@ -1032,6 +1035,7 @@ impl ClientShellState {
         }
         Self {
             machine_diagnostics: Default::default(),
+            network: None,
             config,
             snapshot: None,
             active_snapshot_generation: None,

@@ -16,4 +16,6 @@ pub(super) struct ClientLoopConfig {
     pub(super) remote_image_paste_key:
         Option<(crossterm::event::KeyCode, crossterm::event::KeyModifiers)>,
     pub(super) shell_config: Option<shell::ClientShellConfig>,
+    /// `[agentiscale] node_data_dir`: where the local agentiscaled node is.
+    pub(super) agentiscale_node_dir: String,
 }

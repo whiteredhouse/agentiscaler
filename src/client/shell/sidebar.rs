@@ -435,6 +435,7 @@ pub(crate) fn render_sidebar(
         detail_area,
         snapshot,
         config,
+        state.network,
         state.agent_scroll,
         hits,
     );

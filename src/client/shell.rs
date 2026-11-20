@@ -24,6 +24,7 @@ mod input_source;
 mod link_hover;
 mod mobile;
 mod mouse;
+mod network_agents;
 mod notification_policy;
 mod notifications;
 mod overlay_input;
@@ -39,6 +40,7 @@ mod worktrees;
 use text_editor::TextEditor;
 use word_selection::ClientWordSelection;
 
+pub(crate) use network_agents::{NetworkAgents, NetworkView};
 pub(in crate::client::shell) use render::sidebar;
 pub(crate) use state::*;
 #[cfg(test)]
