@@ -14,19 +14,25 @@ agentiscaler is not affiliated with or endorsed by the herdr project. See
 
 ## Status
 
-Early. This branch has the fork's foundation: the `agentiscaler` binary,
-its own configuration and state directories, and update checks that never
-reach herdr's servers. The network features below are in progress.
+Early. The fork has its own `agentiscaler` binary, configuration and state
+directories, and update checks that never reach herdr's servers.
 
-- **Network agents in the agent list.** The agents of your network show up
-  beside your panes, with whether each one is idle, busy or waiting for an
-  answer.
-- **Tasks from the terminal.** Give a network agent a task, follow it in a
-  pane, answer its questions and cancel it.
+- **Network agents in the agent list (done).** Under "network", below the
+  agents in your panes, the sidebar lists every agent in your network, on any
+  machine: whether it is idle, busy, waiting for an answer or offline, for how
+  long, and which machine offers it ("this machine", or the end of the node's
+  peer ID). It refreshes every 5 seconds.
+- **Tasks from the terminal (in progress).** Give a network agent a task,
+  follow it in a pane, answer its questions and cancel it.
 
 Both need [agentiscaled](https://github.com/whiteredhouse/agentiscaled) running
-and joined to a network on the same machine. agentiscaler talks to it on its
-local socket and holds no network credentials itself.
+and joined to a network on the same machine. agentiscaler asks it on its
+local socket (`agent.sock` in agentiscaled's data directory) and holds no
+network credentials itself: the node reads the list from the control service
+with its own key. Without agentiscaled the network group stays hidden. A node
+in a data directory other than agentiscaled's default is found with
+`AGENTISCALER_NODE_DATA_DIR=<dir>`. The network group is not available on
+Windows yet.
 
 ## Build from source
 

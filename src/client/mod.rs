@@ -30,6 +30,7 @@ mod handshake;
 mod image_files;
 mod input;
 mod loop_config;
+mod network_watch;
 mod notifications;
 mod shell;
 mod shell_runtime;
@@ -666,6 +667,7 @@ async fn run_client_loop(
     let mut pending_catalog: Option<Result<Vec<endpoint::SavedSshEndpoint>, String>> = None;
     if state.shell.is_some() && !is_remote_client && state.attach_escape.is_none() {
         catalog_reload::watch_profiles(event_tx.clone(), should_quit.clone());
+        network_watch::watch(event_tx.clone(), should_quit.clone());
     }
 
     // This (foreground) client owns the prefix ASCII input-source switch
@@ -848,6 +850,16 @@ async fn run_client_loop(
                 }
             }
             ClientLoopEvent::EndpointCatalog(reload) => pending_catalog = Some(reload),
+            ClientLoopEvent::NetworkAgents(view) => {
+                if let Some(frame) = state.shell.as_mut().and_then(|shell| {
+                    shell
+                        .set_network(view)
+                        .then(|| shell.compose(state.reported_size.0, state.reported_size.1))
+                        .flatten()
+                }) {
+                    state.present_frame(frame);
+                }
+            }
             #[cfg(unix)]
             ClientLoopEvent::StdinInput(data) => {
                 let image_bridge_active = endpoint_accepts_local_images(

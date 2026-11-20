@@ -49,11 +49,37 @@ pub(super) fn ordered_agent_pane_ids(
         .collect()
 }
 
+/// A line of the agent panel: one of this machine's pane agents, or a line
+/// of the network group below them.
+pub(super) enum PanelRow<T> {
+    Pane(T),
+    Network(super::network_agents::NetworkLine),
+}
+
+/// The panel's rows: the pane agents, then the network group, which a
+/// filtered agent view leaves out.
+pub(super) fn with_network_rows<T>(
+    rows: Vec<T>,
+    network: Option<&super::NetworkView>,
+    filtered: bool,
+) -> Vec<PanelRow<T>> {
+    let mut out = rows.into_iter().map(PanelRow::Pane).collect::<Vec<_>>();
+    if !filtered {
+        out.extend(
+            super::network_agents::network_lines(network, time::OffsetDateTime::now_utc())
+                .into_iter()
+                .map(PanelRow::Network),
+        );
+    }
+    out
+}
+
 pub(super) fn render_agent_panel(
     buffer: &mut Buffer,
     area: Rect,
     snapshot: &ClientShellSnapshot,
     config: &ClientShellConfig,
+    network: Option<&super::NetworkView>,
     agent_scroll: &mut usize,
     hits: &mut ShellHitMap,
 ) {
@@ -67,7 +93,11 @@ pub(super) fn render_agent_panel(
         return;
     }
 
-    let rows = agent_rows(snapshot, config, None);
+    let rows = with_network_rows(
+        agent_rows(snapshot, config, None),
+        network,
+        snapshot.agent_view_label.is_some(),
+    );
     render_agent_list(
         buffer,
         area,
@@ -79,10 +109,18 @@ pub(super) fn render_agent_panel(
         config,
         agent_scroll,
         hits,
-        |row| row.rows.len(),
-        |buffer, rect, row, hits| {
-            hits.agents.push((rect, row.pane_id.clone()));
-            render_agent_row(buffer, rect, row, config);
+        |row| match row {
+            PanelRow::Pane(row) => row.rows.len(),
+            PanelRow::Network(line) => line.height(),
+        },
+        |buffer, rect, row, hits| match row {
+            PanelRow::Pane(row) => {
+                hits.agents.push((rect, row.pane_id.clone()));
+                render_agent_row(buffer, rect, row, config);
+            }
+            PanelRow::Network(line) => {
+                super::network_agents::render_network_line(buffer, rect, line, config)
+            }
         },
     );
 }

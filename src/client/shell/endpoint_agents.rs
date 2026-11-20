@@ -49,9 +49,11 @@ pub(super) fn render_expanded(
     endpoints: &[ClientShellEndpoint],
     active_endpoint_id: &ClientEndpointId,
     config: &ClientShellConfig,
+    network: Option<&super::NetworkView>,
     agent_scroll: &mut usize,
     hits: &mut ShellHitMap,
 ) {
+    use super::agent_sidebar::PanelRow;
     if !super::agent_sidebar::render_agent_panel_header(
         buffer,
         area,
@@ -61,7 +63,11 @@ pub(super) fn render_expanded(
     ) {
         return;
     }
-    let rows = agent_rows(endpoints, active_endpoint_id, config);
+    let rows = super::agent_sidebar::with_network_rows(
+        agent_rows(endpoints, active_endpoint_id, config),
+        network,
+        agent_view_label.is_some(),
+    );
     super::agent_sidebar::render_agent_list(
         buffer,
         area,
@@ -70,8 +76,18 @@ pub(super) fn render_expanded(
         config,
         agent_scroll,
         hits,
-        |row| row.agent.rows.len(),
+        |row| match row {
+            PanelRow::Pane(row) => row.agent.rows.len(),
+            PanelRow::Network(line) => line.height(),
+        },
         |buffer, rect, row, hits| {
+            let row = match row {
+                PanelRow::Pane(row) => row,
+                PanelRow::Network(line) => {
+                    super::network_agents::render_network_line(buffer, rect, line, config);
+                    return;
+                }
+            };
             super::agent_sidebar::render_agent_row(buffer, rect, &row.agent, config);
             if row.stale {
                 buffer.set_style(
