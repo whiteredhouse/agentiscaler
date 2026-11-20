@@ -1,85 +1,69 @@
-# herdr
+# agentiscaler
 
+A terminal workspace for coding agents that knows your agentiscale network.
 
-<p align="center">
-  <img src="assets/logo.png" alt="herdr" width="100" />
-</p>
+agentiscaler is a fork of [herdr](https://github.com/herdrdev/herdr). It keeps
+everything herdr does (panes, tabs and workspaces in one terminal, detach and
+reattach, a combined agent list with working, blocked and idle marks, saved
+SSH machines, a socket API and plugins) and adds the agents of your
+[agentiscale](https://agentiscale.net) network next to the agents in your
+panes.
 
-<p align="center">
-  <a href="https://herdr.dev">herdr.dev</a> · <a href="#install">install</a> · <a href="https://herdr.dev/docs/quick-start/">quick start</a> · <a href="https://herdr.dev/docs/">docs</a>
-</p>
+agentiscaler is not affiliated with or endorsed by the herdr project. See
+[NOTICE](NOTICE).
 
-<p align="center">
-  English · <a href="README.zh-CN.md">简体中文</a>
-</p>
+## Status
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-666666?labelColor=333333" alt="Apache 2.0 license" /></a>
-  <a href="https://github.com/herdrdev/herdr/releases"><img src="https://img.shields.io/github/downloads/herdrdev/herdr/total?labelColor=333333&color=666666" alt="total GitHub release downloads" /></a>
-  <a href="https://github.com/herdrdev/herdr/stargazers"><img src="https://img.shields.io/github/stars/herdrdev/herdr?labelColor=333333&color=666666&logo=github" alt="GitHub stars" /></a>
-  <a href="https://github.com/herdrdev/herdr/releases/latest"><img src="https://img.shields.io/github/v/release/herdrdev/herdr?label=release&labelColor=333333&color=666666" alt="latest stable release" /></a>
-  <a href="https://formulae.brew.sh/formula/herdr"><img src="https://img.shields.io/homebrew/v/herdr?label=homebrew&labelColor=333333&color=666666" alt="Homebrew version" /></a>
-  <a href="https://x.com/herdrdev"><img src="https://img.shields.io/badge/follow-%40herdrdev-000000?logo=x&logoColor=white" alt="follow @herdrdev on X" /></a>
-</p>
+Early. This branch has the fork's foundation: the `agentiscaler` binary,
+its own configuration and state directories, and update checks that never
+reach herdr's servers. The network features below are in progress.
 
----
+- **Network agents in the agent list.** The agents of your network show up
+  beside your panes, with whether each one is idle, busy or waiting for an
+  answer.
+- **Tasks from the terminal.** Give a network agent a task, follow it in a
+  pane, answer its questions and cancel it.
 
-https://github.com/user-attachments/assets/043ec09f-4bdd-41d5-aee0-8fda6b83e267
+Both need [agentiscaled](https://github.com/whiteredhouse/agentiscaled) running
+and joined to a network on the same machine. agentiscaler talks to it on its
+local socket and holds no network credentials itself.
 
-**the runtime your coding agents live on.**
+## Build from source
 
-- **detach without stopping work** — herdr keeps terminals running in a background server when you close the client or lose your SSH connection. after a server or machine restart, herdr restores the saved layout and can resume supported agent sessions; the original processes do not survive. [session state →](https://herdr.dev/docs/session-state/)
-- **several machines, one window** — keep local work and saved ssh machines together, with a combined agent list and independent reconnects. [remote machines →](https://herdr.dev/docs/connecting-machines/)
-- **never hunt for the stuck one** — every pane is marked working, blocked, or idle. when an agent stops and needs an answer, herdr says so.
-- **agent-native** — agents drive herdr through the cli and socket api: they can spawn panes, prompt each other, and wait until another agent is genuinely blocked. [agent skill →](https://herdr.dev/docs/agent-skill/)
-- **runs what you already run** — claude code, codex, cursor, opencode, grok and the rest. herdr doesn't wrap or replace them; it owns their terminals. building an agent? [add herdr support →](https://herdr.dev/docs/add-herdr-support/)
-- **keyboard and mouse, both first-class** — tmux-style prefix keys *and* click, drag, split. pick per moment, not per tool.
-- **plugins** — extend panes and workflows. [browse the marketplace →](https://herdr.dev/plugins/)
-- **one rust binary, no electron** — runs in whatever terminal you already use.
-
----
-
-## install
+You need the Rust toolchain named in `rust-toolchain.toml` and
+[Zig](https://ziglang.org) 0.16 on your `PATH` (it builds the vendored
+terminal emulator).
 
 ```bash
-curl -fsSL https://herdr.dev/install.sh | sh
-```
-
-or `brew install herdr` · `mise use -g herdr` · windows: `powershell -ExecutionPolicy Bypass -c "irm https://herdr.dev/install.ps1 | iex"` · [endpoint-protected Windows](https://herdr.dev/docs/windows-beta/) · [binaries](https://github.com/herdrdev/herdr/releases)
-
-then start it where the work lives:
-
-```bash
-herdr
-```
-
-run your agents, split panes, walk away. `ctrl+b q` detaches, `herdr` reattaches. [quick start →](https://herdr.dev/docs/quick-start/)
-
-## docs
-
-everything lives at [herdr.dev/docs](https://herdr.dev/docs/): [quick start](https://herdr.dev/docs/quick-start/) · [concepts](https://herdr.dev/docs/concepts/) · [supported agents](https://herdr.dev/docs/agents/) · [keyboard](https://herdr.dev/docs/keyboard/) · [configuration](https://herdr.dev/docs/configuration/) · [session state](https://herdr.dev/docs/session-state/) · [connecting machines](https://herdr.dev/docs/connecting-machines/) · [remote](https://herdr.dev/docs/persistence-remote/) · [integrations](https://herdr.dev/docs/integrations/) · [add herdr support to your agent](https://herdr.dev/docs/add-herdr-support/) · [plugins](https://herdr.dev/docs/plugins/) · [socket api](https://herdr.dev/docs/socket-api/)
-
-## thanks
-
-every past sponsor and backer is listed in [SPONSORS.md](./SPONSORS.md) — thank you 🐑
-
-enterprise / partnership: hey@herdr.dev
-
-## agent instructions
-
-if you are an ai agent helping with this repository, read [`AGENTS.md`](./AGENTS.md) before making changes and read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening issues or PRs.
-
-## development
-
-```bash
-git clone https://github.com/herdrdev/herdr
-cd herdr
 cargo build --release
-
-just test        # unit tests
-just check       # formatting, tests, and maintenance checks
+./target/release/agentiscaler
 ```
 
-## license
+## Differences from herdr
 
-Herdr is licensed under the [Apache License 2.0](LICENSE).
+- The binary is `agentiscaler`. Configuration lives in
+  `~/.config/agentiscaler` and state in `~/.local/state/agentiscaler` (or the
+  platform's equivalent), so agentiscaler runs beside a herdr install without
+  sharing sessions.
+- Update checks look at this repository's releases only, and are off until
+  agentiscaler publishes releases. Agent detection rules ship in the binary;
+  remote rule updates are off by default.
+- Pane environment variables (`HERDR_*`), the socket API and the agent
+  integrations are unchanged, so tools and hooks written for herdr work in
+  agentiscaler panes.
+- Saved SSH machines run a herdr server on the remote side, installed and
+  updated the way herdr does it.
+
+Everything else follows upstream. The upstream documentation applies:
+[herdr docs](https://github.com/herdrdev/herdr/tree/master/docs/next/website/src/content/docs).
+
+## How this fork tracks upstream
+
+- `master` mirrors herdr's `master` and is never changed here.
+- Our changes live on `agentiscale`, the default branch, and land through
+  pull requests.
+- Upstream releases are merged into `agentiscale`, never rebased.
+
+## License
+
+Apache License 2.0, like herdr. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

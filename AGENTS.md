@@ -1,4 +1,25 @@
-# herdr
+# agentiscaler
+
+agentiscaler is the agentiscale fork of herdr. Everything below this section is
+herdr's own guidance and still applies to the code, with these fork rules on top.
+
+## Fork Rules
+
+- `master` mirrors upstream `herdrdev/herdr` and is never changed here. Fork
+  work happens on branches from `agentiscale` and lands there by pull request.
+- Upstream releases are merged into `agentiscale` (`git merge vX.Y.Z`), never
+  rebased. Resolve conflicts in favour of upstream unless the fork changed that
+  line on purpose.
+- Keep the diff against upstream small: put new behaviour in new files
+  (for example `src/network/`) and hook it in with as few upstream lines as
+  possible. Do not rename internal identifiers, `HERDR_*` environment
+  variables, socket API methods or integration assets.
+- User-facing names say agentiscaler. Never imply that the herdr project
+  endorses this fork; keep LICENSE and NOTICE intact.
+- The upstream maintainer, Can-machine and contributor-intake workflows below
+  do not apply in this repository.
+
+# herdr (upstream guidance)
 
 Terminal based agent runtime for coding agents.
 

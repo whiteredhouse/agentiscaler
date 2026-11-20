@@ -1,0 +1,13 @@
+agentiscaler
+Copyright WhiteRedHouse and contributors.
+
+agentiscaler is based on herdr (https://github.com/herdrdev/herdr),
+copyright the herdr authors, licensed under the Apache License, Version 2.0.
+WhiteRedHouse changed it to work with agentiscale networks; see the git
+history of this repository for every change.
+
+agentiscaler is not affiliated with, sponsored by or endorsed by the herdr
+project. "herdr" and the herdr logo belong to their owners.
+
+This product includes third-party code under its own licenses, listed in
+the source tree next to that code (for example, vendor/ and crates/).

@@ -1,7 +1,7 @@
 //! Self-update mechanism.
 //!
-//! Checks the hosted herdr.dev update manifest for newer versions.
-//! Manual `herdr update` downloads and installs the binary.
+//! Checks the update manifest published with agentiscaler releases for newer versions.
+//! Manual `agentiscaler update` downloads and installs the binary.
 //! Background checks only surface availability and release notes.
 //! Uses `curl` as a subprocess for HTTP — no additional Rust HTTP dependencies.
 //! JSON parsing uses serde_json (already in deps for persistence).
@@ -22,12 +22,17 @@ use std::time::{Duration, Instant};
 use interprocess::local_socket::traits::Stream as _;
 use serde::{Deserialize, Deserializer};
 
-const STABLE_UPDATE_MANIFEST_URL: &str = "https://herdr.dev/latest.json";
-const PREVIEW_UPDATE_MANIFEST_URL: &str = "https://herdr.dev/preview.json";
-const HOMEBREW_FORMULA_API_URL: &str = "https://formulae.brew.sh/api/formula/herdr.json";
-const HERDR_UPDATE_COMMAND: &str = "herdr update";
-const HOMEBREW_UPDATE_COMMAND: &str = "brew update && brew upgrade herdr";
-const MISE_UPDATE_COMMAND: &str = "mise upgrade herdr";
+// agentiscaler: updates come from this fork's GitHub releases, never from
+// herdr.dev, so an update can only ever install an agentiscaler build. There
+// is no separate preview channel.
+const STABLE_UPDATE_MANIFEST_URL: &str =
+    "https://github.com/whiteredhouse/agentiscaler/releases/latest/download/latest.json";
+const PREVIEW_UPDATE_MANIFEST_URL: &str =
+    "https://github.com/whiteredhouse/agentiscaler/releases/latest/download/latest.json";
+const HOMEBREW_FORMULA_API_URL: &str = "https://formulae.brew.sh/api/formula/agentiscaler.json";
+const HERDR_UPDATE_COMMAND: &str = "agentiscaler update";
+const HOMEBREW_UPDATE_COMMAND: &str = "brew update && brew upgrade agentiscaler";
+const MISE_UPDATE_COMMAND: &str = "mise upgrade agentiscaler";
 const NIX_UPDATE_COMMAND: &str = "update through Nix";
 const MISE_INSTALLS_DIR_ENV: &str = "MISE_INSTALLS_DIR";
 const FAKE_UPDATE_VERSION_ENV: &str = "HERDR_FAKE_UPDATE_VERSION";
@@ -1008,7 +1013,7 @@ fn plan_running_server_updates(
         )
         .map_err(|err| {
             format!(
-                "failed to read status for herdr target {} at {}: {err}. stop it with `{}` and run `herdr update` again",
+                "failed to read status for herdr target {} at {}: {err}. stop it with `{}` and run `agentiscaler update` again",
                 target.label,
                 target.socket_path.display(),
                 target.stop_command
@@ -1017,7 +1022,7 @@ fn plan_running_server_updates(
             Some(server) => server,
             None if target.must_be_running => {
                 return Err(format!(
-                        "herdr target {} looked running, but its status API did not respond at {}. stop it with `{}` and run `herdr update` again",
+                        "herdr target {} looked running, but its status API did not respond at {}. stop it with `{}` and run `agentiscaler update` again",
                     target.label,
                     target.socket_path.display(),
                     target.stop_command
@@ -1025,7 +1030,7 @@ fn plan_running_server_updates(
             }
             None if client_protocol_server_is_running_at(&target.client_socket_path) => {
                 return Err(format!(
-                    "herdr target {} has a client socket, but its status API did not respond at {}. stop it with `{}` and run `herdr update` again",
+                    "herdr target {} has a client socket, but its status API did not respond at {}. stop it with `{}` and run `agentiscaler update` again",
                     target.label,
                     target.socket_path.display(),
                     target.stop_command
@@ -1043,7 +1048,7 @@ fn plan_running_server_updates(
 
     if plans.is_empty() && target_client_protocol_server_is_running()? {
         return Err(format!(
-            "a herdr server is listening, but its status API is unavailable; try `{}`, or stop the old server process manually, then run `herdr update` again",
+            "a herdr server is listening, but its status API is unavailable; try `{}`, or stop the old server process manually, then run `agentiscaler update` again",
             crate::session::local_stop_command()
         ));
     }
@@ -1161,7 +1166,7 @@ pub(crate) fn parse_self_update_args(args: &[String]) -> Result<SelfUpdateOption
         match arg.as_str() {
             "--handoff" => options.live_handoff = true,
             "--help" | "-h" => {
-                return Err("usage: herdr update [--handoff]".to_string());
+                return Err("usage: agentiscaler update [--handoff]".to_string());
             }
             _ => return Err(format!("unknown update option: {arg}")),
         }
@@ -1176,7 +1181,7 @@ fn prompt_to_stop_old_servers_before_update(
 ) -> Result<bool, String> {
     if !io::stdin().is_terminal() {
         return Err(
-            "one or more Herdr sessions must stop for this update. Stop running Herdr sessions when ready, then run `herdr update` again from an interactive terminal."
+            "one or more Herdr sessions must stop for this update. Stop running Herdr sessions when ready, then run `agentiscaler update` again from an interactive terminal."
                 .to_string(),
         );
     }
@@ -1943,14 +1948,14 @@ pub(crate) fn update_install_command() -> &'static str {
 pub(crate) fn update_install_instruction(install_command: &str) -> String {
     match install_command {
         HERDR_UPDATE_COMMAND => {
-            "detach, run `herdr update`, then run Herdr again to reconnect".to_string()
+            "detach, run `agentiscaler update`, then run Herdr again to reconnect".to_string()
         }
         HOMEBREW_UPDATE_COMMAND => {
-            "detach, run `brew update && brew upgrade herdr`, then run Herdr again to reconnect"
+            "detach, run `brew update && brew upgrade agentiscaler`, then run Herdr again to reconnect"
                 .to_string()
         }
         MISE_UPDATE_COMMAND => {
-            "detach, run `mise upgrade herdr`, then run Herdr again to reconnect".to_string()
+            "detach, run `mise upgrade agentiscaler`, then run Herdr again to reconnect".to_string()
         }
         NIX_UPDATE_COMMAND => {
             "detach, update through Nix, then run Herdr again to reconnect".to_string()
@@ -1994,9 +1999,9 @@ pub(crate) fn preview_channel_rejection_for_current_install() -> Option<&'static
 pub(crate) fn package_manager_channel_update_guidance_for_current_install() -> Option<&'static str>
 {
     if is_homebrew_managed_install() {
-        Some("Use `brew update && brew upgrade herdr` to update Homebrew installs.")
+        Some("Use `brew update && brew upgrade agentiscaler` to update Homebrew installs.")
     } else if is_mise_managed_install() {
-        Some("Use `mise upgrade herdr` to update mise installs.")
+        Some("Use `mise upgrade agentiscaler` to update mise installs.")
     } else if is_nix_managed_install() {
         Some("Update through Nix to update Nix-managed Herdr installs.")
     } else {
@@ -2007,11 +2012,11 @@ pub(crate) fn package_manager_channel_update_guidance_for_current_install() -> O
 fn preview_channel_rejection_for_exe_path(path: &Path) -> Option<&'static str> {
     if is_homebrew_managed_exe_path_following_links(path) {
         Some(
-            "preview channel is only available for direct Herdr installs; Homebrew installs update through `brew update && brew upgrade herdr`",
+            "preview channel is only available for direct Herdr installs; Homebrew installs update through `brew update && brew upgrade agentiscaler`",
         )
     } else if is_mise_managed_exe_path_following_links(path) {
         Some(
-            "preview channel is only available for direct Herdr installs; mise installs update through `mise upgrade herdr`",
+            "preview channel is only available for direct Herdr installs; mise installs update through `mise upgrade agentiscaler`",
         )
     } else if is_nix_store_exe_path_following_links(path) {
         Some("preview channel is only available for direct Herdr installs; Nix installs update through Nix")
@@ -2179,7 +2184,7 @@ fn preserve_preview_channel_for_install(
     Ok(())
 }
 
-/// Manual self-update command (`herdr update`).
+/// Manual self-update command (`agentiscaler update`).
 pub fn self_update(options: SelfUpdateOptions) -> Result<Version, String> {
     let channel = UpdateChannel::configured();
 
@@ -2217,7 +2222,9 @@ pub fn self_update(options: SelfUpdateOptions) -> Result<Version, String> {
     }
 
     if running_inside_herdr() {
-        return Err("run `herdr update` outside herdr after detaching from the session".into());
+        return Err(
+            "run `agentiscaler update` outside herdr after detaching from the session".into(),
+        );
     }
 
     eprintln!("checking {} channel for updates...", channel.as_str());
@@ -2283,7 +2290,9 @@ pub fn self_update(options: SelfUpdateOptions) -> Result<Version, String> {
             && !prompt_to_complete_plain_update(&server_update_decisions, &release)?
         {
             eprintln!("Herdr was not updated.");
-            eprintln!("Stop running Herdr sessions when ready, then run `herdr update` again.");
+            eprintln!(
+                "Stop running Herdr sessions when ready, then run `agentiscaler update` again."
+            );
             return Ok(current);
         }
         install_downloaded_update(downloaded_update)?;
@@ -2340,7 +2349,8 @@ fn saved_machine_update_notice_lines(
     ];
     lines.extend(labels.into_iter().map(|label| format!("  {label}")));
     lines.push(
-        "run `herdr update` on each one. it will tell you what to restart there.".to_string(),
+        "run `agentiscaler update` on each one. it will tell you what to restart there."
+            .to_string(),
     );
     lines
 }
@@ -2829,7 +2839,7 @@ mod tests {
                 "your SSH machines run their own herdr and may be older:",
                 "  rohan",
                 "  workbox",
-                "run `herdr update` on each one. it will tell you what to restart there.",
+                "run `agentiscaler update` on each one. it will tell you what to restart there.",
             ]
         );
     }
@@ -3247,15 +3257,15 @@ mod tests {
     fn update_install_instruction_distinguishes_install_from_restart() {
         assert_eq!(
             update_install_instruction(HERDR_UPDATE_COMMAND),
-            "detach, run `herdr update`, then run Herdr again to reconnect"
+            "detach, run `agentiscaler update`, then run Herdr again to reconnect"
         );
         assert_eq!(
             update_install_instruction(HOMEBREW_UPDATE_COMMAND),
-            "detach, run `brew update && brew upgrade herdr`, then run Herdr again to reconnect"
+            "detach, run `brew update && brew upgrade agentiscaler`, then run Herdr again to reconnect"
         );
         assert_eq!(
             update_install_instruction(MISE_UPDATE_COMMAND),
-            "detach, run `mise upgrade herdr`, then run Herdr again to reconnect"
+            "detach, run `mise upgrade agentiscaler`, then run Herdr again to reconnect"
         );
     }
 
