@@ -1,12 +1,12 @@
 [package]
-name = "herdr"
+name = "agentiscaler"
 version = "0.9.5"
 edition = "2021"
 build = "build.rs"
-description = "terminal workspace manager for AI coding agents"
+description = "terminal workspace for AI coding agents with agentiscale network integration, based on herdr"
 license = "Apache-2.0"
-repository = "https://github.com/herdrdev/herdr"
-homepage = "https://herdr.dev"
+repository = "https://github.com/whiteredhouse/agentiscaler"
+homepage = "https://agentiscale.net"
 keywords = ["terminal", "tui", "ai", "agents", "multiplexer"]
 categories = ["command-line-utilities"]
 include = [
@@ -17,6 +17,7 @@ include = [
     "distribution/install.ps1",
     "README.md",
     "LICENSE",
+    "NOTICE",
     "Cargo.toml",
 ]
 

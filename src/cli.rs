@@ -47,9 +47,9 @@ const TERMINAL_SESSION_CONTROL_USAGE: &str =
 pub(crate) const AGENT_HELP_FOOTER: &str = concat!(
     "Are you an AI? Use these resources ONLY IF your task specifically asks you to:\n",
     "  Control Herdr panes, agents, or workspaces:\n",
-    "    SKIP if a Herdr skill is already in your context. Otherwise run: herdr --skill\n",
+    "    SKIP if a Herdr skill is already in your context. Otherwise run: agentiscaler --skill\n",
     "  Help a human understand or set up Herdr, or debug a problem with it:\n",
-    "    read the source and docs: https://github.com/herdrdev/herdr",
+    "    read the source and docs: https://github.com/whiteredhouse/agentiscaler",
 );
 
 pub(crate) fn parse_token_assignment(raw: &str) -> Result<(String, Option<String>), String> {

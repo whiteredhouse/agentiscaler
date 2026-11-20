@@ -101,7 +101,7 @@ fn server_integrity_requires_startup_consent_on_both_endpoints() {
         directory,
     };
     let app_dir = if cfg!(debug_assertions) {
-        "herdr-dev"
+        "agentiscaler-dev"
     } else {
         "herdr"
     };
@@ -134,7 +134,7 @@ fn server_integrity_requires_startup_consent_on_both_endpoints() {
             configuration,
         )
         .unwrap();
-        let mut command = Command::new(env!("CARGO_BIN_EXE_herdr"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_agentiscaler"));
         command.args(["--session", "integrity-test", "server"]);
         if allow_unelevated {
             command.arg("--allow-unelevated-clients");

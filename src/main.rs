@@ -15,6 +15,7 @@ mod agent_resume;
 mod agent_view_eval;
 mod api;
 mod app;
+mod brand;
 mod build_info;
 mod checksum;
 mod cli;
@@ -126,11 +127,12 @@ const DEFAULT_CONFIG: &str = r##"# herdr configuration
 # so existing preview installs stay there until explicitly switched.
 # channel = "stable"
 
-# Check herdr.dev for new Herdr versions in the background.
+# Check agentiscaler's GitHub releases for new versions in the background.
 # version_check = true
 
-# Check herdr.dev for remote agent-detection manifest updates in the background.
-# manifest_check = true
+# Fetch agent-detection rule updates from herdr.dev in the background.
+# Off by default: the rules ship in the binary.
+# manifest_check = false
 
 [keys]
 # Prefix key to enter prefix mode (default: "ctrl+b")
@@ -605,93 +607,105 @@ fn main() -> io::Result<()> {
 
     if args.iter().any(|a| a == "--help" || a == "-h") {
         platform::begin_cli_output();
-        println!("herdr — terminal workspace manager for AI coding agents");
+        println!("agentiscaler — terminal workspace manager for AI coding agents");
         println!();
-        println!("Usage: herdr [options]");
-        println!("       herdr --session <name> [options]");
-        println!("       herdr --machine <label-or-id> <command>");
-        println!("       herdr --remote <ssh-target> [--session <name>]");
-        println!("       herdr session attach <name>");
-        println!("       herdr completion zsh");
-        println!("       herdr update [--handoff]");
-        println!("       herdr channel set <stable|preview>");
-        println!("       herdr machine <subcommand> ...");
-        println!("       herdr server stop");
-        println!("       herdr server reload-config");
-        println!("       herdr api <subcommand> ...");
-        println!("       herdr completion <shell>");
-        println!("       herdr config <subcommand> ...");
-        println!("       herdr channel <subcommand> ...");
-        println!("       herdr workspace <subcommand> ...");
-        println!("       herdr worktree <subcommand> ...");
-        println!("       herdr tab <subcommand> ...");
-        println!("       herdr notification <subcommand> ...");
-        println!("       herdr agent <subcommand> ...");
-        println!("       herdr pane <subcommand> ...");
-        println!("       herdr session <subcommand> ...");
-        println!("       herdr integration <subcommand> ...");
+        println!("Usage: agentiscaler [options]");
+        println!("       agentiscaler --session <name> [options]");
+        println!("       agentiscaler --machine <label-or-id> <command>");
+        println!("       agentiscaler --remote <ssh-target> [--session <name>]");
+        println!("       agentiscaler session attach <name>");
+        println!("       agentiscaler completion zsh");
+        println!("       agentiscaler update [--handoff]");
+        println!("       agentiscaler channel set <stable|preview>");
+        println!("       agentiscaler machine <subcommand> ...");
+        println!("       agentiscaler server stop");
+        println!("       agentiscaler server reload-config");
+        println!("       agentiscaler api <subcommand> ...");
+        println!("       agentiscaler completion <shell>");
+        println!("       agentiscaler config <subcommand> ...");
+        println!("       agentiscaler channel <subcommand> ...");
+        println!("       agentiscaler workspace <subcommand> ...");
+        println!("       agentiscaler worktree <subcommand> ...");
+        println!("       agentiscaler tab <subcommand> ...");
+        println!("       agentiscaler notification <subcommand> ...");
+        println!("       agentiscaler agent <subcommand> ...");
+        println!("       agentiscaler pane <subcommand> ...");
+        println!("       agentiscaler session <subcommand> ...");
+        println!("       agentiscaler integration <subcommand> ...");
         println!();
         println!("Common commands:");
         for (command, description) in [
-            ("herdr", "Launch or attach to the persistent session"),
+            ("agentiscaler", "Launch or attach to the persistent session"),
             (
-                "herdr status [server|client]",
+                "agentiscaler status [server|client]",
                 "Show local client and running server status",
             ),
-            ("herdr update", "Download and install the latest version"),
-            ("herdr completion zsh", "Generate shell completions for zsh"),
             (
-                "herdr server stop",
+                "agentiscaler update",
+                "Download and install the latest version",
+            ),
+            (
+                "agentiscaler completion zsh",
+                "Generate shell completions for zsh",
+            ),
+            (
+                "agentiscaler server stop",
                 "Stop the running server via the API socket",
             ),
             (
-                "herdr channel set <stable|preview>",
+                "agentiscaler channel set <stable|preview>",
                 "Choose the stable or preview update channel",
             ),
             (
-                "herdr server reload-config",
+                "agentiscaler server reload-config",
                 "Reload config.toml in the running server",
             ),
             (
-                "herdr config reset-keys",
+                "agentiscaler config reset-keys",
                 "Back up config.toml and remove custom keybindings",
             ),
             (
-                "herdr channel <subcommand>",
+                "agentiscaler channel <subcommand>",
                 "Manage the stable or preview update channel",
             ),
-            ("herdr machine <subcommand>", "Manage saved SSH machines"),
             (
-                "herdr api <subcommand>",
+                "agentiscaler machine <subcommand>",
+                "Manage saved SSH machines",
+            ),
+            (
+                "agentiscaler api <subcommand>",
                 "Inspect socket API metadata and live runtime state",
             ),
             (
-                "herdr workspace <subcommand>",
+                "agentiscaler workspace <subcommand>",
                 "Workspace helpers over the socket API",
             ),
             (
-                "herdr worktree <subcommand>",
+                "agentiscaler worktree <subcommand>",
                 "Git worktree helpers over the socket API",
             ),
-            ("herdr tab <subcommand>", "Tab helpers over the socket API"),
             (
-                "herdr notification <subcommand>",
+                "agentiscaler tab <subcommand>",
+                "Tab helpers over the socket API",
+            ),
+            (
+                "agentiscaler notification <subcommand>",
                 "Notification helpers over the socket API",
             ),
             (
-                "herdr agent <subcommand>",
+                "agentiscaler agent <subcommand>",
                 "Agent/terminal helpers over the socket API",
             ),
             (
-                "herdr pane <subcommand>",
+                "agentiscaler pane <subcommand>",
                 "Pane control helpers over the socket API",
             ),
             (
-                "herdr session <subcommand>",
+                "agentiscaler session <subcommand>",
                 "Manage named persistent sessions",
             ),
             (
-                "herdr integration <subcommand>",
+                "agentiscaler integration <subcommand>",
                 "Manage built-in agent integrations",
             ),
         ] {
@@ -699,7 +713,7 @@ fn main() -> io::Result<()> {
         }
         println!();
         println!("Advanced commands:");
-        println!("  {:<32} Run as headless server", "herdr server");
+        println!("  {:<32} Run as headless server", "agentiscaler server");
         println!();
         println!("Options:");
         println!("  --session <name>    Use or create a named persistent session");
@@ -716,7 +730,7 @@ fn main() -> io::Result<()> {
         println!("Config: {}", config::config_path().display());
         println!("Logs:   {}", logging::help_log_paths_summary());
         println!("Env:    HERDR_CONFIG_PATH overrides config file path");
-        println!("Home:   https://herdr.dev");
+        println!("Home:   https://github.com/whiteredhouse/agentiscaler (based on herdr)");
         println!();
         println!("{}", cli::AGENT_HELP_FOOTER);
         return Ok(());
@@ -724,7 +738,7 @@ fn main() -> io::Result<()> {
 
     if args.iter().any(|a| a == "--version" || a == "-V") {
         platform::begin_cli_output();
-        println!("herdr {}", crate::build_info::version());
+        println!("agentiscaler {}", crate::build_info::version());
         return Ok(());
     }
 
@@ -736,7 +750,7 @@ fn main() -> io::Result<()> {
 
     if args.iter().any(|a| a == "--skill") {
         platform::begin_cli_output();
-        print!("{SKILL}");
+        print!("{}", brand::agent_skill(SKILL));
         return Ok(());
     }
 
