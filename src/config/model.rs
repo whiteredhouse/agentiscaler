@@ -325,6 +325,18 @@ pub struct Config {
     pub advanced: AdvancedConfig,
     pub experimental: ExperimentalConfig,
     pub remote: RemoteConfig,
+    pub agentiscale: AgentiscaleConfig,
+}
+
+/// How agentiscaler finds the local agentiscaled node, which lists the
+/// agents of the owner's agentiscale network.
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub struct AgentiscaleConfig {
+    /// agentiscaled's data directory, whose `agent.sock` agentiscaler asks.
+    /// Empty: agentiscaled's default. Applies to clients started after the
+    /// change.
+    pub node_data_dir: String,
 }
 
 #[derive(Debug)]

@@ -37,6 +37,9 @@ pub(crate) struct NetworkAgents {
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 pub(crate) struct NetworkAgent {
     pub(crate) peer_id: String,
+    /// The name the agent's node gave when it joined.
+    #[serde(default)]
+    pub(crate) machine_name: String,
     pub(crate) name: String,
     #[serde(default)]
     pub(crate) description: String,
@@ -110,6 +113,8 @@ pub(super) fn network_lines(view: Option<&NetworkView>, now: OffsetDateTime) -> 
                 let (status, state) = agent_state(agent, now);
                 let machine = if agent.peer_id == list.peer_id {
                     "this machine".to_owned()
+                } else if !agent.machine_name.is_empty() {
+                    agent.machine_name.clone()
                 } else {
                     short_peer_id(&agent.peer_id)
                 };
@@ -277,6 +282,7 @@ mod tests {
     ) -> NetworkAgent {
         NetworkAgent {
             peer_id: peer.to_owned(),
+            machine_name: String::new(),
             name: name.to_owned(),
             description: String::new(),
             reported_at: None,
@@ -332,7 +338,10 @@ mod tests {
                         waiting_since: at(42, now),
                     }),
                 ),
-                agent("12D3KooWOtherMachineBBBBBB", "writer", true, None),
+                NetworkAgent {
+                    machine_name: "artur-mbp".to_owned(),
+                    ..agent("12D3KooWOtherMachineBBBBBB", "writer", true, None)
+                },
             ],
         };
         let lines = network_lines(Some(&NetworkView::Agents(list)), now);
@@ -353,7 +362,7 @@ mod tests {
                     "waiting for an answer 42s",
                     "…BBBBBB"
                 ),
-                expected("writer", AgentStatus::Idle, "idle", "…BBBBBB"),
+                expected("writer", AgentStatus::Idle, "idle", "artur-mbp"),
                 expected("archive", AgentStatus::Unknown, "offline 12m", "…AAAAAA"),
             ]
         );

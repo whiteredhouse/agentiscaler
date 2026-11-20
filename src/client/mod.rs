@@ -214,6 +214,7 @@ fn run_client_with_mode(
         .as_ref()
         .is_some_and(shell::ClientShellConfig::uses_endpoint_keybindings);
     let mut loop_config = ClientLoopConfig {
+        agentiscale_node_dir: loaded_config.config.agentiscale.node_data_dir.clone(),
         sound_config: loaded_config.config.ui.sound,
         mouse_scroll_lines,
         redraw_on_focus_gained,
@@ -667,7 +668,11 @@ async fn run_client_loop(
     let mut pending_catalog: Option<Result<Vec<endpoint::SavedSshEndpoint>, String>> = None;
     if state.shell.is_some() && !is_remote_client && state.attach_escape.is_none() {
         catalog_reload::watch_profiles(event_tx.clone(), should_quit.clone());
-        network_watch::watch(event_tx.clone(), should_quit.clone());
+        network_watch::watch(
+            event_tx.clone(),
+            should_quit.clone(),
+            &config.agentiscale_node_dir,
+        );
     }
 
     // This (foreground) client owns the prefix ASCII input-source switch

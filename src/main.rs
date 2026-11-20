@@ -446,6 +446,12 @@ pane_history = false
 # Maximum scrollback buffer size in bytes retained per pane terminal.
 # Matches Ghostty's default scrollback-limit behavior.
 # scrollback_limit_bytes = 10000000
+
+[agentiscale]
+# agentiscaled's data directory, where agentiscaler asks the node for the
+# agents of your network (its agent.sock). Empty uses agentiscaled's default.
+# Applies to clients started after the change.
+# node_data_dir = ""
 "##;
 
 // Bundled at build time so the printed skill always matches this binary's release.
