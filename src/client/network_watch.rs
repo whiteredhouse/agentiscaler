@@ -9,7 +9,7 @@
 //! `[agentiscale] node_data_dir`, or agentiscaled's default (the user
 //! configuration directory's `agentiscale`).
 
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -29,6 +29,11 @@ pub(super) fn watch(
     should_quit: Arc<AtomicBool>,
     configured_dir: &str,
 ) {
+    // agentiscaled's local socket is a Unix socket; elsewhere the network
+    // group stays hidden.
+    if cfg!(not(unix)) {
+        return;
+    }
     let Some(data_dir) = node_data_dir(configured_dir) else {
         return;
     };
@@ -155,6 +160,7 @@ fn failure_view(body: &[u8]) -> NetworkView {
 /// body until it closes the connection.
 #[cfg(unix)]
 fn open_watch(socket: &Path) -> io::Result<BufReader<std::os::unix::net::UnixStream>> {
+    use std::io::Write;
     let mut stream = std::os::unix::net::UnixStream::connect(socket)?;
     stream.set_write_timeout(Some(Duration::from_secs(5)))?;
     stream.write_all(b"GET /network/agents?watch=1 HTTP/1.0\r\nHost: agentiscaled\r\n\r\n")?;
@@ -238,6 +244,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn a_watch_publishes_each_change_and_the_end() {
+        use std::io::Write;
         use std::os::unix::net::UnixListener;
         let dir = std::env::temp_dir().join(format!("agentiscaler-net-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
