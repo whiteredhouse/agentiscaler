@@ -1469,6 +1469,18 @@
       ]
     },
     {
+      "id": "agentiscale",
+      "title": "Agentiscale",
+      "keys": [
+        {
+          "key": "agentiscale.node_data_dir",
+          "type": "string",
+          "default": "\"\"",
+          "description": "Data directory of the local agentiscaled node, whose agent socket the sidebar's network group watches. Empty uses agentiscaled's default, the user configuration directory's agentiscale folder. Unix only."
+        }
+      ]
+    },
+    {
       "id": "advanced",
       "title": "Advanced",
       "keys": [
